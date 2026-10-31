@@ -9,9 +9,9 @@
 	"id": "cepxno.custom-main-levels",
 	"name": "Custom Main Levels",
 	"version": "v1.2.0",
-	"developer": "YourName",
+	"developer": "CepxNo",
 	"description": "Add your own levels to the official main levels list (Play button).",
-	"repository": "https://github.com/yourname/custom-main-levels",
+	"repository": "https://github.com/CepxNo-Cahhec29/custom-main-levels",
 	"tags": [
 		"gameplay",
 		"interface",
