@@ -19,11 +19,6 @@ Copy the generated `.geode` file into your `Geometry Dash/geode/mods` folder
 No local toolchain? Push this folder to a GitHub repo — `.github/workflows/build.yml`
 builds for Windows, macOS, Android and iOS, and uploads a combined `.geode`.
 
-## Before publishing
-- Change `id` and `developer` in `mod.json` (e.g. `yourname.custom-main-levels`).
-- Add a 336x336 (or similar) `logo.png` next to `mod.json`.
-- Update `repository` in `mod.json`.
-
 ## How it works
 - `LevelSelectLayer::init` is hooked: stored levels are appended to the `BoomScrollLayer` as extra pages.
 - `EditLevelLayer::init` is hooked: adds an **Add to Main Levels** button that saves the level's
@@ -31,14 +26,3 @@ builds for Windows, macOS, Android and iOS, and uploads a combined `.geode`.
 - `LevelSelectLayer::colorForPage` is hooked: custom pages cycle through a color palette instead of reusing/overflowing RobTop's colors.
 - `LevelSelectLayer::colorForPage` is hooked so custom pages get their own background colors.
 - Each page is a `CustomLevelPage` with a play button (starts `PlayLayer`) and a remove button.
-
-## Project layout
-```
-mod.json
-CMakeLists.txt
-about.md / changelog.md
-src/main.cpp              hooks
-src/CustomLevels.hpp      storage + GJGameLevel builder
-src/CustomLevelPage.*     the page UI
-.github/workflows/build.yml
-```
