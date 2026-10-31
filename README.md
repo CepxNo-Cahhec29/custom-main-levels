@@ -18,11 +18,3 @@ Copy the generated `.geode` file into your `Geometry Dash/geode/mods` folder
 
 No local toolchain? Push this folder to a GitHub repo — `.github/workflows/build.yml`
 builds for Windows, macOS, Android and iOS, and uploads a combined `.geode`.
-
-## How it works
-- `LevelSelectLayer::init` is hooked: stored levels are appended to the `BoomScrollLayer` as extra pages.
-- `EditLevelLayer::init` is hooked: adds an **Add to Main Levels** button that saves the level's
-  name, description, creator, song and level string to the mod's save file.
-- `LevelSelectLayer::colorForPage` is hooked: custom pages cycle through a color palette instead of reusing/overflowing RobTop's colors.
-- `LevelSelectLayer::colorForPage` is hooked so custom pages get their own background colors.
-- Each page is a `CustomLevelPage` with a play button (starts `PlayLayer`) and a remove button.
