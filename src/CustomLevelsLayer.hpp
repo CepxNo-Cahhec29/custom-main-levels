@@ -6,6 +6,7 @@ class CustomLevelsLayer : public CCLayer {
 protected:
 	int m_index = 0;
 	CCSprite* m_bg = nullptr;
+	std::vector<CCSprite*> m_groundTiles;
 	CCNode* m_content = nullptr;
 	CCMenuItemSpriteExtra* m_prevBtn = nullptr;
 	CCMenuItemSpriteExtra* m_nextBtn = nullptr;

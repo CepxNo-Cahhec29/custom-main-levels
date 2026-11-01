@@ -31,6 +31,16 @@ static CCNode* makeBar(float width, ccColor3B color, int percent) {
 	return node;
 }
 
+static void drawCircle(CCDrawNode* node, CCPoint center, float radius, ccColor4F color) {
+	constexpr int segments = 20;
+	CCPoint verts[segments];
+	for (int i = 0; i < segments; i++) {
+		float a = 2.f * 3.14159265f * static_cast<float>(i) / segments;
+		verts[i] = { center.x + radius * cosf(a), center.y + radius * sinf(a) };
+	}
+	node->drawPolygon(verts, segments, color, 0.f, color);
+}
+
 static CCLabelBMFont* makeLabel(std::string const& text, char const* font, float scale, CCPoint pos) {
 	auto label = CCLabelBMFont::create(text.c_str(), font);
 	label->setScale(scale);
@@ -72,6 +82,40 @@ bool CustomLevelsLayer::init(int index) {
 		m_bg->setZOrder(-10);
 		this->addChild(m_bg);
 	}
+
+	// ground (dark band at the bottom, tinted per level in refresh)
+	{
+		float groundH = 50.f;
+		auto shade = CCLayerColor::create({ 0, 0, 0, 90 }, winSize.width, groundH);
+		shade->setPosition({ 0.f, 0.f });
+		this->addChild(shade, -6);
+
+		auto first = makeFrame("groundSquare_01_001.png");
+		auto tileSize = first->getContentSize();
+		if (tileSize.width > 8.f && tileSize.height > 8.f) {
+			float scale = groundH / tileSize.height;
+			float tileW = tileSize.width * scale;
+			int n = static_cast<int>(std::ceil(winSize.width / tileW)) + 1;
+			for (int i = 0; i < n; i++) {
+				auto tile = i == 0 ? first : makeFrame("groundSquare_01_001.png");
+				tile->setAnchorPoint({ 0.f, 0.f });
+				tile->setScale(scale);
+				tile->setPosition({ tileW * i, 0.f });
+				this->addChild(tile, -7);
+				m_groundTiles.push_back(tile);
+			}
+		}
+
+		auto line = CCLayerColor::create({ 255, 255, 255, 110 }, winSize.width, 2.f);
+		line->setPosition({ 0.f, groundH - 1.f });
+		this->addChild(line, -5);
+	}
+
+	// top decoration
+	auto top = makeFrame("GJ_topBar_001.png");
+	top->setAnchorPoint({ .5f, 1.f });
+	top->setPosition({ winSize.width / 2, winSize.height + 1.f });
+	this->addChild(top, 2);
 
 	// corner art
 	auto bl = makeFrame("GJ_sideArt_001.png");
@@ -129,8 +173,18 @@ void CustomLevelsLayer::refresh() {
 	this->addChild(content, 1);
 	m_content = content;
 
+	auto tintGround = [this](ccColor3B c) {
+		ccColor3B dark {
+			static_cast<GLubyte>(c.r * .55f),
+			static_cast<GLubyte>(c.g * .55f),
+			static_cast<GLubyte>(c.b * .55f)
+		};
+		for (auto tile : m_groundTiles) tile->setColor(dark);
+	};
+
 	if (count == 0) {
 		m_bg->setColor(CustomLevels::colors()[0].color);
+		tintGround(CustomLevels::colors()[0].color);
 		auto label = CCLabelBMFont::create(
 			"No custom levels yet.\nOpen My Levels, pick a level\nand press the + button.",
 			"bigFont.fnt"
@@ -147,6 +201,7 @@ void CustomLevelsLayer::refresh() {
 
 	auto const& colorList = CustomLevels::colors();
 	m_bg->setColor(colorList[CustomLevels::wrapIndex(d.color, colorList)].color);
+	tintGround(colorList[CustomLevels::wrapIndex(d.color, colorList)].color);
 
 	// ---------------- the level card (tap to play) ----------------
 	float cardW = 339.f;
@@ -173,20 +228,27 @@ void CustomLevelsLayer::refresh() {
 	}
 	auto face = makeFrame(diffList[CustomLevels::wrapIndex(d.difficulty, diffList)].frame);
 	face->setPosition(facePos);
-	face->setScale(.95f);
+	face->setScale(1.12f);
 	card->addChild(face, 2);
 
 	// name
 	auto nameLabel = CCLabelBMFont::create(d.name.c_str(), "bigFont.fnt");
-	nameLabel->limitLabelWidth(225.f, 1.f, .3f);
-	nameLabel->setPosition({ 190.f, 46.f });
+	nameLabel->limitLabelWidth(245.f, 1.f, .3f);
+	nameLabel->setAnchorPoint({ 0.f, .5f });
+	nameLabel->setPosition({ 67.f, 47.5f });
 	card->addChild(nameLabel, 2);
 
 	// stars (top right)
 	if (d.stars > 0) {
-		card->addChild(makeLabel(std::to_string(d.stars), "goldFont.fnt", .65f, { 305.f, 82.f }), 2);
+		auto starNum = CCLabelBMFont::create(std::to_string(d.stars).c_str(), "bigFont.fnt");
+		starNum->setColor({ 255, 255, 0 });
+		starNum->setScale(.5f);
+		starNum->setAnchorPoint({ 1.f, .5f });
+		starNum->setPosition({ 311.f, 82.f });
+		card->addChild(starNum, 2);
 		auto star = makeFrame("GJ_starsIcon_001.png");
-		star->setPosition({ 324.f, 82.f });
+		star->setScale(.68f);
+		star->setPosition({ 325.f, 82.f });
 		card->addChild(star, 2);
 	}
 
@@ -195,9 +257,14 @@ void CustomLevelsLayer::refresh() {
 	int bestPractice = CustomLevels::bestPercent(d, true);
 	if (d.orbs > 0) {
 		int earned = static_cast<int>(static_cast<long long>(d.orbs) * std::min(bestNormal, 100) / 100);
-		card->addChild(makeLabel(fmt::format("{}/{}", earned, d.orbs), "bigFont.fnt", .5f, { 38.f, 12.f }), 2);
+		auto orbLabel = CCLabelBMFont::create(fmt::format("{}/{}", earned, d.orbs).c_str(), "bigFont.fnt");
+		orbLabel->setScale(.42f);
+		orbLabel->setAnchorPoint({ 0.f, .5f });
+		orbLabel->setPosition({ 8.f, 11.f });
+		card->addChild(orbLabel, 2);
 		auto orb = makeFrame("currencyOrbIcon_001.png");
-		orb->setPosition({ 78.f, 12.f });
+		orb->setScale(.75f);
+		orb->setPosition({ 8.f + orbLabel->getScaledContentSize().width + 14.f, 11.f });
 		card->addChild(orb, 2);
 	}
 
@@ -234,7 +301,7 @@ void CustomLevelsLayer::refresh() {
 	float startX = cx - spacing * (count - 1) / 2.f;
 	for (int i = 0; i < count; i++) {
 		ccColor4F color = i == m_index ? ccColor4F { 1.f, 1.f, 1.f, 1.f } : ccColor4F { .55f, .55f, .55f, 1.f };
-		dots->drawDot({ startX + spacing * i, 15.f }, 3.5f, color);
+		drawCircle(dots, { startX + spacing * i, 15.f }, 4.f, color);
 	}
 	content->addChild(dots);
 }
