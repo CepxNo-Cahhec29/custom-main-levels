@@ -36,7 +36,7 @@ static void drawCircle(CCDrawNode* node, CCPoint center, float radius, ccColor4F
 	CCPoint verts[segments];
 	for (int i = 0; i < segments; i++) {
 		float a = 2.f * 3.14159265f * static_cast<float>(i) / segments;
-		verts[i] = { center.x + radius * cosf(a), center.y + radius * sinf(a) };
+   verts[i] = CCPoint(center.x + radius * cosf(a), center.y + radius * sinf(a));
 	}
 	node->drawPolygon(verts, segments, color, 0.f, color);
 }
