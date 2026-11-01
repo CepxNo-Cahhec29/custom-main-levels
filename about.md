@@ -1,7 +1,7 @@
 # Custom Main Levels
 
-Add **your own levels** to RobTop's official main levels list. They show up as extra pages
-after the official ones when you press the big **Play** button in the main menu.
+Add **your own levels** to RobTop's official main levels list. They show up in a extra button
+after the official ones when you press the big **Play** button in the main menu perfect for showcases.
 
 ## How to use
 1. Open **My Levels** (the Create menu) and open one of your levels (the level edit screen).
