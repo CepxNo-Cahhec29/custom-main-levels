@@ -1,13 +1,12 @@
 #pragma once
 #include "CustomLevels.hpp"
-#include "CustomLevelPage.hpp"
 
-// Own screen that shows the custom levels one page at a time (with arrows).
+// Screen that looks like the official Main Levels screen, but for custom levels.
 class CustomLevelsLayer : public CCLayer {
 protected:
 	int m_index = 0;
+	CCSprite* m_bg = nullptr;
 	CCNode* m_content = nullptr;
-	CCLabelBMFont* m_counter = nullptr;
 	CCMenuItemSpriteExtra* m_prevBtn = nullptr;
 	CCMenuItemSpriteExtra* m_nextBtn = nullptr;
 
@@ -17,6 +16,8 @@ protected:
 	void onBack(CCObject*);
 	void onPrev(CCObject*);
 	void onNext(CCObject*);
+	void onInfo(CCObject*);
+	void onPlay(CCObject*);
 	void keyBackClicked() override;
 
 public:

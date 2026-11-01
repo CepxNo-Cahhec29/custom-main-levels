@@ -4,6 +4,7 @@
 #include <Geode/modify/GameManager.hpp>
 #include "CustomLevels.hpp"
 #include "CustomLevelsLayer.hpp"
+#include "LevelSetupLayer.hpp"
 
 using namespace geode::prelude;
 
@@ -99,10 +100,10 @@ class $modify(CMLEditLevelLayer, EditLevelLayer) {
 	}
 
 	void onAddToMain(CCObject*) {
-		if (CustomLevels::tryAddFromEditor(m_level)) {
-			if (m_fields->addButton && Mod::get()->getSettingValue<bool>("hide-if-added")) {
-				m_fields->addButton->setVisible(false);
-			}
+		if (!m_level || std::string(m_level->m_levelString).empty()) {
+			FLAlertLayer::create("Error", "This level has no data to add (is it empty?).", "OK")->show();
+			return;
 		}
+		CCDirector::get()->replaceScene(CCTransitionFade::create(.5f, LevelSetupLayer::scene(m_level)));
 	}
 };

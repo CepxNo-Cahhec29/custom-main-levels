@@ -1,5 +1,5 @@
-// Rewards for completing a custom level (stars, orbs, coins, diamonds).
-// Self-contained: if it ever fails to build, this file can be deleted.
+// Progress tracking (best % for Normal / Practice) and rewards for completing a
+// custom level. Self-contained: if it ever fails to build, this file can be deleted.
 #include <Geode/Geode.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include "CustomLevels.hpp"
@@ -7,26 +7,41 @@
 using namespace geode::prelude;
 
 class $modify(CMLPlayLayer, PlayLayer) {
+	void resetLevel() {
+		if (m_level && m_level == CustomLevels::g_playing) {
+			CustomLevelData entry;
+			if (CustomLevels::currentEntry(entry)) {
+				CustomLevels::recordPercent(entry, m_isPracticeMode, static_cast<int>(this->getCurrentPercent()));
+			}
+		}
+		PlayLayer::resetLevel();
+	}
+
 	void levelComplete() {
 		PlayLayer::levelComplete();
 
 		if (!m_level || m_level != CustomLevels::g_playing) return;
+
+		CustomLevelData entry;
+		if (!CustomLevels::currentEntry(entry)) return;
+
+		CustomLevels::recordPercent(entry, m_isPracticeMode, 100);
 		if (m_isPracticeMode) return;
 
-		auto mod = Mod::get();
-		int stars = static_cast<int>(mod->getSettingValue<int64_t>("reward-stars"));
-		int orbs = static_cast<int>(mod->getSettingValue<int64_t>("reward-orbs"));
-		int coins = static_cast<int>(mod->getSettingValue<int64_t>("reward-coins"));
-		int diamonds = static_cast<int>(mod->getSettingValue<int64_t>("reward-diamonds"));
+		int stars = entry.stars;
+		int orbs = entry.orbs;
+		int coins = entry.coins;
+		int diamonds = entry.diamonds;
 		if (stars + orbs + coins + diamonds <= 0) return;
 
+		auto mod = Mod::get();
 		bool safeMode = mod->getSettingValue<bool>("safe-mode");
 
 		if (!safeMode) {
 			// only the first completion pays out (optional)
 			if (mod->getSettingValue<bool>("reward-once")) {
 				auto done = mod->getSavedValue<std::vector<std::string>>("rewarded-levels");
-				auto key = CustomLevels::levelKey(m_level);
+				auto key = CustomLevels::levelKey(entry.name, entry.data);
 				if (std::find(done.begin(), done.end(), key) != done.end()) return;
 				done.push_back(key);
 				mod->setSavedValue("rewarded-levels", done);
